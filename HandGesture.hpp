@@ -12,16 +12,6 @@
 using namespace std;
 
 namespace HandGesture{
-    struct Picture
-    {
-        int id;
-        int content;
-
-        Picture(int _id = 0, int _content = 0)
-        :id(_id), content(_content){}
-    };
-    ostream& operator<<(ostream& o, const Picture &p);
-
     struct Landmark{
         float x, y, z;
 
@@ -92,7 +82,6 @@ namespace HandGesture{
         
     //private:
         Landmark **landmarks;
-        Picture pic;
         
         // these three variables must consider IPC issues
         int *gesture;

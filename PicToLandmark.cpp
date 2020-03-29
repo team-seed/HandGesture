@@ -4,9 +4,6 @@ namespace HandGesture{
 void HandGesture::HandGesture::PicToLandmark::picToLandmark(HandGesture *hg)
 {
     cout << "* picToLandmark()" << endl;
-
-    hg->pic = {1, 1};
-    cout << "receive picture" << hg->pic << endl;
     
     // Create a new segment with given name and size
     boost::interprocess::managed_shared_memory segment(
