@@ -8,14 +8,17 @@ void HandGesture::HandGesture::PicToLandmark::picToLandmark(HandGesture *hg)
     hg->pic = {1, 1};
     cout << "receive picture" << hg->pic << endl;
     
-    hg->landmarks.push_back({0.1f, 0.1f, 0.1f});
-    hg->bbCenter = {0.1f, 0.1f, 0.1f};
+    // Create a new segment with given name and size
+    boost::interprocess::managed_shared_memory segment(
+        boost::interprocess::open_or_create, 
+        hg->config.shmName.c_str(), hg->config.shmSize);
 
-    cout << "send landmarks" << endl;
-    for(const auto &lm : hg->landmarks){
-        cout << lm << endl;
-    }
+    // Construct an variable in shm
+    hg->bbCenter = segment.find<Landmark>(
+        hg->config.shmbbCenter.c_str()).first;
 
-    cout << "send bbCenter" << hg->bbCenter << endl;
+    *(hg->bbCenter) = {0.1f, 0.1f, 0.1f};
+
+    cout << "send bbCenter" << *(hg->bbCenter) << endl;
 }
 }

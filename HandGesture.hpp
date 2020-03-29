@@ -3,6 +3,11 @@
 
 #include <iostream>
 #include <vector>
+#include <string>
+
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/containers/vector.hpp>
+#include <boost/interprocess/allocators/allocator.hpp>
 
 using namespace std;
 
@@ -48,6 +53,14 @@ namespace HandGesture{
             //     mediapipe/graphs/hand_tracking/multi_hand_tracking_mobile.pbtxt and
             //     mediapipe/graphs/hand_tracking/multi_hand_tracking_desktop_live.pbtxt.
             int handNum = 2;
+            int jointNum = 21;
+            int fps = 60;
+
+            // shm settings
+            string shmName = "HandGesture";
+            int shmSize = 1024;
+            string shmbbCenter = "bbCenter";
+            string shmGestureName = "Gesture";
         };
 
         // provide these four functions API for NeoHand
@@ -65,22 +78,25 @@ namespace HandGesture{
 
         // init shm
         void initShm();
+        void delShm();
+        void openShm();
 
+        // internal class using
         HandGesture();
         //~HandGesture();
+        void initLandmark();
 
         PicToLandmark p2l;
         LandmarkToGesture l2g;
         HandGestureConfig config;
         
     //private:
-        vector<Landmark> landmarks;
+        Landmark **landmarks;
         Picture pic;
         
         // these three variables must consider IPC issues
-        int gesture;
-        Landmark bbCenter;
-        int fps;  // must design a config data structure
+        int *gesture;
+        Landmark *bbCenter;
     };
 }
 
