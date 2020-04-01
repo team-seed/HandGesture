@@ -5,6 +5,10 @@ ostream& operator<<(ostream& o, const Landmark &l)
 {
     return o << " (x, y, z) = " << l.x << ", " << l.y << ", " << l.z << " ";
 }
+ostream& operator<<(std::ostream& o, const Gesture &g)
+{
+    return o << " gesture " << g.lm << " is " << g.gesture << " ";
+}
 
 HandGesture::HandGesture::HandGesture()
 {
@@ -22,14 +26,12 @@ void HandGesture::HandGesture::recvGesture()
         config.shmName.c_str(), config.shmSize);
 
     // Construct an variable in shared memory
-    gesture = segment.find<int>(
-        config.shmGestureName.c_str()).first;
+    Gesture *gesture = segment.find<Gesture>(
+        config.shmbbCenterGestureName.c_str()).first;
 
-    // Construct an variable in shm
-    bbCenter = segment.find<Landmark>(
-        config.shmbbCenter.c_str()).first;
-
-    cout << "receive gesture " << *gesture << endl;
+    for(int i=0; i<config.handNum; i++){
+        cout << "receive gesture " << gesture[i] << endl;
+    }
 }
 void HandGesture::HandGesture::initShm()
 {
@@ -41,12 +43,7 @@ void HandGesture::HandGesture::initShm()
         config.shmName.c_str(), config.shmSize);
 
     // Construct an variable in shared memory
-    gesture = segment.construct<int>(
-        config.shmGestureName.c_str())();
-
-    // Construct an variable in shm
-    bbCenter = segment.construct<Landmark>(
-        config.shmbbCenter.c_str())();
+    segment.construct<Gesture>(config.shmbbCenterGestureName.c_str())[config.handNum]();
 }
 void HandGesture::HandGesture::delShm()
 {
@@ -54,10 +51,7 @@ void HandGesture::HandGesture::delShm()
         boost::interprocess::open_only, config.shmName.c_str());
 
     //When done, destroy gesture from the segment
-    segment.destroy<int>(config.shmGestureName.c_str());
-
-    //When done, destroy bbCenter from the segment
-    segment.destroy<Landmark>(config.shmbbCenter.c_str());
+    segment.destroy<Gesture>(config.shmbbCenterGestureName.c_str());
 
     boost::interprocess::shared_memory_object::remove(config.shmName.c_str());
 }
@@ -71,12 +65,8 @@ void HandGesture::HandGesture::openShm()
         config.shmName.c_str(), config.shmSize);
 
     // Construct an variable in shared memory
-    gesture = segment.find<int>(
-        config.shmGestureName.c_str()).first;
-
-    // Construct an variable in shm
-    bbCenter = segment.find<Landmark>(
-        config.shmbbCenter.c_str()).first;
+    segment.find<Gesture>(
+        config.shmbbCenterGestureName.c_str()).first;
 }
 void HandGesture::HandGesture::initLandmark()
 {
@@ -84,5 +74,9 @@ void HandGesture::HandGesture::initLandmark()
     for(int i=0; i<config.handNum; i++){
         landmarks[i] = new Landmark[config.jointNum];
     }
+}
+void HandGesture::HandGesture::getHandGestureConfig()
+{
+    
 }
 }

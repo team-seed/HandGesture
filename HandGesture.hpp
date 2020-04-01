@@ -15,10 +15,19 @@ namespace HandGesture{
     struct Landmark{
         float x, y, z;
 
-        Landmark(float _x = 0.f, float _y = 0.f,float _z = 0.f)
+        Landmark(float _x = -0.f, float _y = -0.f,float _z = -0.f)
         :x(_x), y(_y), z(_z){}
     };
     ostream& operator<<(std::ostream& o, const Landmark &l);
+
+    struct Gesture{
+        Landmark lm;
+        int gesture;
+
+        Gesture(Landmark _lm = {-0.f, -0.f, -0.f}, int _gesture = -1)
+        :lm(_lm), gesture(_gesture){}
+    };
+    ostream& operator<<(std::ostream& o, const Gesture &g);
 
     class HandGesture{
     public:
@@ -49,8 +58,7 @@ namespace HandGesture{
             // shm settings
             string shmName = "HandGesture";
             int shmSize = 1024;
-            string shmbbCenter = "bbCenter";
-            string shmGestureName = "Gesture";
+            string shmbbCenterGestureName = "bbCenterGesture";
         };
 
         // provide these four functions API for NeoHand
@@ -76,16 +84,19 @@ namespace HandGesture{
         //~HandGesture();
         void initLandmark();
 
-        PicToLandmark p2l;
+        //PicToLandmark p2l;
         LandmarkToGesture l2g;
         HandGestureConfig config;
         
     //private:
         Landmark **landmarks;
         
+        // hand number from mediapipe multi hand
+        int multiHandNum;
+        int multiRectNum;
+        
         // these three variables must consider IPC issues
-        int *gesture;
-        Landmark *bbCenter;
+        //Gesture *gesture;
     };
 }
 

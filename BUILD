@@ -25,17 +25,7 @@ cc_library(
     srcs = ["HandGesture.cpp", "PicToLandmark.cpp", "LandmarkToGesture.cpp"],
     hdrs = ["HandGesture.hpp"],
     deps = [
-        "//mediapipe/calculators/tflite:tflite_tensors_to_landmarks_calculator_cc_proto",
-        "//mediapipe/framework:calculator_framework",
-        "//mediapipe/framework/formats:landmark_cc_proto",
-        # is not visible from target
-        # resolve by moving landmarks_to_shm folder under mediapipe/
-        # because visibility of landmark_cc_proto is "//mediapipe:__subpackages__"
-        "//mediapipe/framework/port:ret_check",
-        "@org_tensorflow//tensorflow/lite:framework",
         "@boost//:interprocess",
-        #"//mediapipe/landmarks_to_shm:landmarks_datatype"
-        "//third_party:opencv",
     ],
     visibility = ["//visibility:public"],
     alwayslink = 1,
