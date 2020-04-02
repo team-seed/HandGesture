@@ -4,21 +4,98 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cmath>
 
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/containers/vector.hpp>
-#include <boost/interprocess/allocators/allocator.hpp>
+#define FLOAT_MIN 1e-10
 
 using namespace std;
 
 namespace HandGesture{
-    struct Landmark{
-        float x, y, z;
+    // modify these value in mediapipe if changed handNum
+    //   * max_vec_size in 
+    //     ClipVectorSizeCalculatorOptions in 
+    //     multi_hand_detection_gpu.pbtxt
+    //   * modify min_size in
+    //     CollectionHsMinSizeCalculatorOptions in
+    //     mediapipe/graphs/hand_tracking/multi_hand_tracking_mobile.pbtxt and
+    //     mediapipe/graphs/hand_tracking/multi_hand_tracking_desktop_live.pbtxt.
+    extern const int handNum;
+    extern const int jointNum;
+    // shm settings
+    extern const char *shmName;
+    extern const int shmSize;
+    extern const char *shmbbCenterGestureName;
 
-        Landmark(float _x = -0.f, float _y = -0.f,float _z = -0.f)
-        :x(_x), y(_y), z(_z){}
+    struct Landmark{
+        float x, y, z, angle;
+
+        Landmark(float _x = -0.f, float _y = -0.f,float _z = -0.f, float _angle = 0.f)
+        :x(_x), y(_y), z(_z), angle(_angle){}
+
+        bool operator==(const Landmark p)
+        {
+            return (x==p.x && y==p.y && z==p.z);
+        }
+
+        Landmark& operator=(const Landmark &p)
+        {
+            x = p.x; y = p.y; z = p.z;
+            return *this;
+        }
+
+        float distance(void) const
+        {
+            float total = 0.f;
+            if(fabs(x) > FLOAT_MIN)
+                total += x*x;
+            if(fabs(y) > FLOAT_MIN)
+                total += y*y;
+            return (sqrtf(total));
+        }
+
+        float distance3d(void) const
+        {
+            float total = 0.f;
+            if(fabs(x) > FLOAT_MIN)
+                total += x*x;
+            if(fabs(y) > FLOAT_MIN)
+                total += y*y;
+            if(fabs(z) > FLOAT_MIN)
+                total += z*z;
+            return (sqrtf(total));
+        }
+
+        Landmark operator+(const Landmark &p) const
+        {
+            return Landmark(x+p.x, y+p.y, z+p.z);
+        }
+
+        Landmark operator-(const Landmark &p) const
+        {
+            return Landmark(x-p.x, y-p.y, z-p.z);
+        }
+
+        // inner product
+        Landmark operator*(const Landmark &p) const
+        {
+            return Landmark(x*p.x, y*p.y, z*p.z);
+        }
+
+        // scalar multiplication
+        Landmark operator*(const float c) const
+        {
+            return Landmark(x*c, y*c, z*c);
+        }
+
+        void cosAngle(Landmark &a, Landmark &c)
+        {
+            const Landmark x = a - *this;
+            const Landmark y = c - *this;
+            angle = acosf((x*y).distance3d() / (x.distance3d() * y.distance3d()));
+        }
     };
     ostream& operator<<(std::ostream& o, const Landmark &l);
+    istream& operator>>(std::istream& i, Landmark &l);
 
     struct Gesture{
         Landmark lm;
@@ -31,35 +108,28 @@ namespace HandGesture{
 
     class HandGesture{
     public:
-        class PicToLandmark{
-        public:
-            void picToLandmark(HandGesture *hg);
-        };
+            void landmarkToGesture();
+            void angleSimilarity(int *gesReturn);
+            void resize(Landmark **lm, const int &idxNum);
+            void preprocess(Landmark **lm, const int &idxNum);
 
-        class LandmarkToGesture{
-        public:
-            void landmarkToGesture(HandGesture *hg);
-        };
+            void initCmpAngleArr();
+            void initJointAngle(Landmark **lm, const int &idxNum);
+            void initImageSize();
+            void initGestureDef();
+            void initGestureName();
 
-        class HandGestureConfig{
-        public:
-            // modify these value in mediapipe
-            //   * max_vec_size in 
-            //     ClipVectorSizeCalculatorOptions in 
-            //     multi_hand_detection_gpu.pbtxt
-            //   * modify min_size in
-            //     CollectionHsMinSizeCalculatorOptions in
-            //     mediapipe/graphs/hand_tracking/multi_hand_tracking_mobile.pbtxt and
-            //     mediapipe/graphs/hand_tracking/multi_hand_tracking_desktop_live.pbtxt.
-            int handNum = 2;
-            int jointNum = 21;
+            int *cmpAngleArr;
+            int cmpAngleArrNum = 15;
+            Landmark **gestureDef;
+            Landmark imageSize;
+            std::string *gestureName;
+
             int fps = 60;
-
-            // shm settings
-            string shmName = "HandGesture";
-            int shmSize = 1024;
-            string shmbbCenterGestureName = "bbCenterGesture";
-        };
+            int gestureNum = 10;
+            float angleSimilarityThreshold = 2.0f;
+            int camID = 0;
+            string gesturePath = "../mediapipe/mediapipe/HandGesture/store_gesture";
 
         // provide these four functions API for NeoHand
         //void handGestureConfig();  // NeoHand related config, implement by file IO
@@ -75,28 +145,26 @@ namespace HandGesture{
         void setHandGestureConfig();  // set all config from NeoHand and HandGesture
 
         // init shm
-        void initShm();
-        void delShm();
-        void openShm();
+        //void initShm();
+        //void delShm();
+        //void openShm();
 
         // internal class using
-        HandGesture();
-        //~HandGesture();
+        HandGesture(Gesture *gesturePtr);
+        ~HandGesture();
         void initLandmark();
+        void initbbCenter();
 
-        //PicToLandmark p2l;
-        LandmarkToGesture l2g;
-        HandGestureConfig config;
-        
     //private:
         Landmark **landmarks;
+        Landmark *bbCenter;
         
         // hand number from mediapipe multi hand
         int multiHandNum;
         int multiRectNum;
         
         // these three variables must consider IPC issues
-        //Gesture *gesture;
+        Gesture *gesture;
     };
 }
 

@@ -26,6 +26,7 @@ cc_library(
     hdrs = ["HandGesture.hpp"],
     deps = [
         "@boost//:interprocess",
+        "//third_party:opencv",
     ],
     visibility = ["//visibility:public"],
     alwayslink = 1,
