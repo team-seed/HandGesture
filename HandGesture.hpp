@@ -2,13 +2,10 @@
 #define HANDGESTURE_HPP
 
 #include <iostream>
-#include <vector>
 #include <string>
 #include <cmath>
 
 #define FLOAT_MIN 1e-10
-
-using namespace std;
 
 namespace HandGesture{
     // modify these value in mediapipe if changed handNum
@@ -94,8 +91,8 @@ namespace HandGesture{
             angle = acosf((x*y).distance3d() / (x.distance3d() * y.distance3d()));
         }
     };
-    ostream& operator<<(std::ostream& o, const Landmark &l);
-    istream& operator>>(std::istream& i, Landmark &l);
+    std::ostream& operator<<(std::ostream& o, const Landmark &l);
+    std::istream& operator>>(std::istream& i, Landmark &l);
 
     struct Gesture{
         Landmark lm;
@@ -104,7 +101,7 @@ namespace HandGesture{
         Gesture(Landmark _lm = {-0.f, -0.f, -0.f}, int _gesture = -1)
         :lm(_lm), gesture(_gesture){}
     };
-    ostream& operator<<(std::ostream& o, const Gesture &g);
+    std::ostream& operator<<(std::ostream& o, const Gesture &g);
 
     class HandGesture{
     public:
@@ -129,7 +126,7 @@ namespace HandGesture{
             int gestureNum = 10;
             float angleSimilarityThreshold = 2.0f;
             int camID = 0;
-            string gesturePath = "../mediapipe/mediapipe/HandGesture/store_gesture";
+            std::string gesturePath = "../mediapipe/mediapipe/HandGesture/store_gesture";
 
         // provide these four functions API for NeoHand
         //void handGestureConfig();  // NeoHand related config, implement by file IO

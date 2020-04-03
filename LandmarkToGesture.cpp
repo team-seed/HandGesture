@@ -9,8 +9,6 @@
 namespace HandGesture{
 void HandGesture::HandGesture::landmarkToGesture()
 {
-    cout << "* landmarkToGesture()" << endl;
-
     int *ges = new int[multiHandNum];
 
     preprocess(landmarks, multiHandNum);
@@ -46,7 +44,6 @@ void HandGesture::HandGesture::landmarkToGesture()
 }
 void HandGesture::HandGesture::angleSimilarity(int *gesReturn)
 {
-    cout << "* angleSimilarity()\n";
     for(int hand=0; hand<multiHandNum; hand++){
         int maxGes = -1;
         float maxSim = 200;
@@ -107,7 +104,6 @@ void HandGesture::HandGesture::resize(Landmark **lm, const int &idxNum)
 }
 void HandGesture::HandGesture::initGestureDef()
 {
-    cout << "* initGestureDef()\n";
     // allocate memory
     gestureDef = new Landmark*[gestureNum];
     for(int ges=0; ges<gestureNum; ges++){
@@ -120,7 +116,7 @@ void HandGesture::HandGesture::initGestureDef()
 
         std::ifstream gesFile(path);
         if(!gesFile){
-            std::perror("load_gesture");
+            std::cerr << "load_gesture";
             exit(EXIT_FAILURE);
         }
 
@@ -142,7 +138,6 @@ void HandGesture::HandGesture::initGestureDef()
 }
 void HandGesture::HandGesture::preprocess(Landmark **lm, const int &idxNum)
 {
-    cout << "* preprocess()\n";
     resize(lm, idxNum);
 
     initJointAngle(lm, idxNum);

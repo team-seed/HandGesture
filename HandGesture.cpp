@@ -1,9 +1,7 @@
 #include "HandGesture.hpp"
-/*
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/containers/vector.hpp>
-#include <boost/interprocess/allocators/allocator.hpp>
-*/
+
+//#include <boost/interprocess/managed_shared_memory.hpp>
+
 namespace HandGesture{
     
 const int handNum = 2;
@@ -13,22 +11,21 @@ const char *shmName = "HandGesture";
 const int shmSize = 1024;
 const char *shmbbCenterGestureName = "bbCenterGesture";
 
-ostream& operator<<(ostream& o, const Landmark &l)
+std::ostream& operator<<(std::ostream& o, const Landmark &l)
 {
     return o << " (x, y, z) = " << l.x << ", " << l.y << ", " << l.z << " ";
 }
-istream& operator>>(std::istream& i, Landmark &l)
+std::istream& operator>>(std::istream& i, Landmark &l)
 {
     return i >> l.x >> l.y >> l.z;
 }
-ostream& operator<<(std::ostream& o, const Gesture &g)
+std::ostream& operator<<(std::ostream& o, const Gesture &g)
 {
     return o << " gesture " << g.lm << " is " << g.gesture << " ";
 }
 HandGesture::HandGesture::HandGesture(Gesture *gesturePtr)
 :gesture(gesturePtr)
 {
-    cout << "* HandGesture()" << endl;
     initLandmark();
     initbbCenter();
     getHandGestureConfig();
@@ -78,7 +75,6 @@ void HandGesture::HandGesture::openShm()
 */
 void HandGesture::HandGesture::initLandmark()
 {
-    cout << "* initLandmark()\n";
     landmarks = new Landmark*[handNum];
     for(int i=0; i<handNum; i++){
         landmarks[i] = new Landmark[jointNum];
@@ -90,7 +86,6 @@ void HandGesture::HandGesture::getHandGestureConfig()
 }
 void HandGesture::HandGesture::initbbCenter()
 {
-    cout << "* initbbCenter()\n";
     bbCenter = new Landmark[handNum];
 }
 }
