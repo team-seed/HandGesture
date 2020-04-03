@@ -3,27 +3,7 @@
 //#include <boost/interprocess/managed_shared_memory.hpp>
 
 namespace HandGesture{
-    
-const int handNum = 2;
-const int jointNum = 21;
-// shm settings
-const char *shmName = "HandGesture";
-const int shmSize = 1024;
-const char *shmbbCenterGestureName = "bbCenterGesture";
-
-std::ostream& operator<<(std::ostream& o, const Landmark &l)
-{
-    return o << " (x, y, z) = " << l.x << ", " << l.y << ", " << l.z << " ";
-}
-std::istream& operator>>(std::istream& i, Landmark &l)
-{
-    return i >> l.x >> l.y >> l.z;
-}
-std::ostream& operator<<(std::ostream& o, const Gesture &g)
-{
-    return o << " gesture " << g.lm << " is " << g.gesture << " ";
-}
-HandGesture::HandGesture::HandGesture(Gesture *gesturePtr)
+HandGesture::HandGesture::HandGesture(ShmConfig::Gesture *gesturePtr)
 :gesture(gesturePtr)
 {
     initLandmark();
@@ -48,7 +28,7 @@ void HandGesture::HandGesture::initShm()
         boost::interprocess::open_or_create, shmName, shmSize);
 
     // Construct an variable in shared memory
-    segment.construct<Gesture>(shmbbCenterGestureName)[handNum]();
+    segment.construct<ShmConfig::Gesture>(shmbbCenterGestureName)[ShmConfig::handNum]();
 }
 void HandGesture::HandGesture::delShm()
 {
@@ -56,7 +36,7 @@ void HandGesture::HandGesture::delShm()
         boost::interprocess::open_only, shmName);
 
     //When done, destroy gesture from the segment
-    segment.destroy<Gesture>(shmbbCenterGestureName);
+    segment.destroy<ShmConfig::Gesture>(shmbbCenterGestureName);
 
     boost::interprocess::shared_memory_object::remove(shmName);
 }
@@ -69,15 +49,15 @@ void HandGesture::HandGesture::openShm()
         boost::interprocess::open_or_create, shmName, shmSize);
 
     // Construct an variable in shared memory
-    segment.find<Gesture>(
+    segment.find<ShmConfig::Gesture>(
         shmbbCenterGestureName).first;
 }
 */
 void HandGesture::HandGesture::initLandmark()
 {
-    landmarks = new Landmark*[handNum];
-    for(int i=0; i<handNum; i++){
-        landmarks[i] = new Landmark[jointNum];
+    landmarks = new ShmConfig::Landmark*[ShmConfig::handNum];
+    for(int i=0; i<ShmConfig::handNum; i++){
+        landmarks[i] = new ShmConfig::Landmark[ShmConfig::jointNum];
     }
 }
 void HandGesture::HandGesture::getHandGestureConfig()
@@ -86,6 +66,6 @@ void HandGesture::HandGesture::getHandGestureConfig()
 }
 void HandGesture::HandGesture::initbbCenter()
 {
-    bbCenter = new Landmark[handNum];
+    bbCenter = new ShmConfig::Landmark[ShmConfig::handNum];
 }
 }

@@ -22,8 +22,8 @@ load("//mediapipe/framework/port:build_config.bzl", "mediapipe_cc_proto_library"
 # https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library
 cc_library(
     name = "HandGesture",
-    srcs = ["HandGesture.cpp", "PicToLandmark.cpp", "LandmarkToGesture.cpp"],
-    hdrs = ["HandGesture.hpp"],
+    srcs = ["HandGesture.cpp", "LandmarkToGesture.cpp", "ShmConfig.cpp"],
+    hdrs = ["HandGesture.hpp", "ShmConfig.hpp"],
     deps = [
         "@boost//:interprocess",
         "//third_party:opencv",

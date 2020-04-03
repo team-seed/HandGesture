@@ -33,12 +33,12 @@ void HandGesture::HandGesture::landmarkToGesture()
     for(int hand=0; hand<multiHandNum; hand++){
         gesture[hand] = {bbCenter[hand], ges[hand]};
     }
-    // if multiHandNum smaller than config.handNum, set others to ges[0]
-    for(int hand=multiHandNum; hand<handNum; hand++){
+    // if multiHandNum smaller than config.ShmConfig::handNum, set others to ges[0]
+    for(int hand=multiHandNum; hand<ShmConfig::handNum; hand++){
         gesture[hand].gesture = ges[0];
     }
-    // if multiRectNum smaller than config.handNum, set others to gesture[0].lm
-    for(int rect=multiHandNum; rect<handNum; rect++){
+    // if multiRectNum smaller than config.ShmConfig::handNum, set others to gesture[0].lm
+    for(int rect=multiHandNum; rect<ShmConfig::handNum; rect++){
         gesture[rect].lm = bbCenter[0];
     }
 }
@@ -73,7 +73,7 @@ void HandGesture::HandGesture::initCmpAngleArr()
         cmpAngleArr[i] = (i%3) + (i/3)*4 + 1;
     }
 }
-void HandGesture::HandGesture::initJointAngle(Landmark **lm, const int &idxNum)
+void HandGesture::HandGesture::initJointAngle(ShmConfig::Landmark **lm, const int &idxNum)
 {
     for(int idx=0; idx<idxNum; idx++){
         for(int i=0; i<cmpAngleArrNum; i++){
@@ -94,10 +94,10 @@ void HandGesture::HandGesture::initImageSize()
     const float h = capture.get(cv::CAP_PROP_FRAME_HEIGHT);
     imageSize = {w, h, 1};
 }
-void HandGesture::HandGesture::resize(Landmark **lm, const int &idxNum)
+void HandGesture::HandGesture::resize(ShmConfig::Landmark **lm, const int &idxNum)
 {
     for(int i=0; i<idxNum; i++){
-        for(int j=0; j<jointNum; j++){
+        for(int j=0; j<ShmConfig::jointNum; j++){
             lm[i][j] = lm[i][j] * imageSize;
         }
     }
@@ -105,9 +105,9 @@ void HandGesture::HandGesture::resize(Landmark **lm, const int &idxNum)
 void HandGesture::HandGesture::initGestureDef()
 {
     // allocate memory
-    gestureDef = new Landmark*[gestureNum];
+    gestureDef = new ShmConfig::Landmark*[gestureNum];
     for(int ges=0; ges<gestureNum; ges++){
-        gestureDef[ges] = new Landmark[jointNum];
+        gestureDef[ges] = new ShmConfig::Landmark[ShmConfig::jointNum];
     }
     
     // load defined gestures
@@ -121,7 +121,7 @@ void HandGesture::HandGesture::initGestureDef()
         }
 
         std::string s;
-        for(int joint=0; joint<jointNum; joint++){
+        for(int joint=0; joint<ShmConfig::jointNum; joint++){
             std::getline(gesFile, s);
             std::istringstream ss(s);
             int index; float angle;
@@ -136,7 +136,7 @@ void HandGesture::HandGesture::initGestureDef()
     }
     preprocess(gestureDef, gestureNum);
 }
-void HandGesture::HandGesture::preprocess(Landmark **lm, const int &idxNum)
+void HandGesture::HandGesture::preprocess(ShmConfig::Landmark **lm, const int &idxNum)
 {
     resize(lm, idxNum);
 
