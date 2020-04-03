@@ -12,8 +12,9 @@ HandGesture::HandGesture::HandGesture(ShmConfig::Gesture *gesturePtr)
 
     // init from l2g HandGesture
     initCmpAngleArr();
-    initGestureDef();
+    initImageSize();
     initGestureName();
+    initGestureDef();
 }
 HandGesture::HandGesture::~HandGesture()
 {

@@ -14,20 +14,7 @@ void HandGesture::HandGesture::landmarkToGesture()
     preprocess(landmarks, multiHandNum);
 
     angleSimilarity(ges);
-/*
-    // Create a new segment with given name and size
-    boost::interprocess::managed_shared_memory segment(
-        boost::interprocess::open_or_create, 
-        config.shmName.c_str(), config.shmSize);
 
-    // Construct an variable in shared memory
-    Gesture *gesture = segment.find<Gesture>(
-        config.shmbbCenterGestureName.c_str()).first;
-
-    if(gesture == 0){
-        std::cout << "can't find shared memory\n";
-    }
-*/
     // assume that multiRectNum must larger than multiHandNum
     // save gesture to shared memory
     for(int hand=0; hand<multiHandNum; hand++){
@@ -54,12 +41,13 @@ void HandGesture::HandGesture::angleSimilarity(int *gesReturn)
                 int joint = cmpAngleArr[cmpAngleArrCnt];
                 gesSim += fabs(landmarks[hand][joint].angle - gestureDef[ges][joint].angle);
             }
+            //std::cout << "hand: " << hand << " ges: " << ges << " gesSim: " << gesSim << std:: endl;
             if(gesSim < maxSim){
                 maxSim = gesSim;
                 maxGes = ges;
             }
         }
-
+        //std::cout << "hand: " << hand << " maxGes: " << maxGes << " maxSim: " << maxSim << std:: endl;
         if(maxSim > angleSimilarityThreshold){
             maxGes = -1;
         }
@@ -129,11 +117,12 @@ void HandGesture::HandGesture::initGestureDef()
             ss >> index >> gestureDef[ges][joint] >> angle;
         }
         std::getline(gesFile, s);
-        // cause error
-        //gestureName[ges] = s;
+        // cause error because initGestureName() after this function
+        gestureName[ges] = s;
         
         gesFile.close();
     }
+
     preprocess(gestureDef, gestureNum);
 }
 void HandGesture::HandGesture::preprocess(ShmConfig::Landmark **lm, const int &idxNum)

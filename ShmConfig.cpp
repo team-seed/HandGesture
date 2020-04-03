@@ -10,7 +10,7 @@ namespace ShmConfig{
 
     std::ostream& operator<<(std::ostream& o, const Landmark &l)
     {
-        return o << " (x, y, z) = " << l.x << ", " << l.y << ", " << l.z << " ";
+        return o << " (x, y, z) = " << l.x << ", " << l.y << ", " << l.z << " " << l.angle << " ";
     }
     std::istream& operator>>(std::istream& i, Landmark &l)
     {
