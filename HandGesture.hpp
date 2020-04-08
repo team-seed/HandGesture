@@ -4,10 +4,13 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <ctime>
 
 #include "ShmConfig.hpp"
 
 namespace HandGesture{
+    // POSIX time measurement
+    struct timespec diff(struct timespec start, struct timespec end);
     class HandGesture{
     public:
             void landmarkToGesture();
@@ -32,6 +35,8 @@ namespace HandGesture{
             float angleSimilarityThreshold = 2.0f;
             int camID = 0;
             std::string gesturePath = "../mediapipe/mediapipe/HandGesture/store_gesture";
+            int perCnt = 0;
+            int perCntMax = 1e5;
 
         // provide these four functions API for NeoHand
         //void handGestureConfig();  // NeoHand related config, implement by file IO
@@ -56,6 +61,9 @@ namespace HandGesture{
         ~HandGesture();
         void initLandmark();
         void initbbCenter();
+        void defineMode();
+        void gameMode();
+        void performaceMode();
 
     //private:
         ShmConfig::Landmark **landmarks;
@@ -67,6 +75,7 @@ namespace HandGesture{
         
         // these three variables must consider IPC issues
         ShmConfig::Gesture *gesture;
+        struct timespec start, end;
     };
 }
 

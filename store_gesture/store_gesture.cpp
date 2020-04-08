@@ -1,13 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "../mediapipe/landmarks_to_shm/landmarks_to_shm.h"
 #include <cstdlib>
-
-landmarks_to_shm::gesture ges(
-    landmarks_datatype::norm_landmark_name, 
-    landmarks_datatype::bbCentral_name, 
-    landmarks_datatype::shm_name);
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include "../HandGesture.hpp"
 
 void print_gesture()
 {

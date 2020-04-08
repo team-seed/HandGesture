@@ -3,7 +3,7 @@
 //#include <boost/interprocess/managed_shared_memory.hpp>
 
 namespace HandGesture{
-HandGesture::HandGesture::HandGesture(ShmConfig::Gesture *gesturePtr)
+HandGesture::HandGesture(ShmConfig::Gesture *gesturePtr)
 :gesture(gesturePtr)
 {
     initLandmark();
@@ -16,7 +16,7 @@ HandGesture::HandGesture::HandGesture(ShmConfig::Gesture *gesturePtr)
     initGestureName();
     initGestureDef();
 }
-HandGesture::HandGesture::~HandGesture()
+HandGesture::~HandGesture()
 {
 }
 /*
@@ -54,19 +54,42 @@ void HandGesture::HandGesture::openShm()
         shmbbCenterGestureName).first;
 }
 */
-void HandGesture::HandGesture::initLandmark()
+void HandGesture::initLandmark()
 {
     landmarks = new ShmConfig::Landmark*[ShmConfig::handNum];
     for(int i=0; i<ShmConfig::handNum; i++){
         landmarks[i] = new ShmConfig::Landmark[ShmConfig::jointNum];
     }
 }
-void HandGesture::HandGesture::getHandGestureConfig()
+void HandGesture::getHandGestureConfig()
 {
-    
+    if(perCnt == 0){
+        clock_gettime(CLOCK_MONOTONIC_COARSE, &start);
+    }
+    else if(perCnt > perCntMax){
+        clock_gettime(CLOCK_MONOTONIC_COARSE, &end);
+        struct timespec temp = diff(start, end);
+        double gesture_time = (temp.tv_sec + (double) temp.tv_nsec / 1000000000.0);
+        double gesture_fps = perCntMax / gesture_time;
+
+        std::cout << "FPS: " << gesture_fps << std::endl;
+    }
+    ++perCnt;
 }
-void HandGesture::HandGesture::initbbCenter()
+void HandGesture::initbbCenter()
 {
     bbCenter = new ShmConfig::Landmark[ShmConfig::handNum];
+}
+struct timespec diff(struct timespec start, struct timespec end)
+{
+    struct timespec temp;
+    if ((end.tv_nsec-start.tv_nsec)<0) {
+        temp.tv_sec = end.tv_sec-start.tv_sec-1;
+        temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+    } else {
+        temp.tv_sec = end.tv_sec-start.tv_sec;
+        temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+    }
+    return temp;
 }
 }
