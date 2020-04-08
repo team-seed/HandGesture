@@ -6,14 +6,11 @@ namespace HandGesture{
 HandGesture::HandGesture(ShmConfig::Gesture *gesturePtr)
 :gesture(gesturePtr)
 {
-    initLandmark();
-    initbbCenter();
     getHandGestureConfig();
 
     // init from l2g HandGesture
     initCmpAngleArr();
     initImageSize();
-    initGestureName();
     initGestureDef();
 }
 HandGesture::~HandGesture()
@@ -54,31 +51,9 @@ void HandGesture::HandGesture::openShm()
         shmbbCenterGestureName).first;
 }
 */
-void HandGesture::initLandmark()
-{
-    landmarks = new ShmConfig::Landmark*[ShmConfig::handNum];
-    for(int i=0; i<ShmConfig::handNum; i++){
-        landmarks[i] = new ShmConfig::Landmark[ShmConfig::jointNum];
-    }
-}
 void HandGesture::getHandGestureConfig()
 {
-    if(perCnt == 0){
-        clock_gettime(CLOCK_MONOTONIC_COARSE, &start);
-    }
-    else if(perCnt > perCntMax){
-        clock_gettime(CLOCK_MONOTONIC_COARSE, &end);
-        struct timespec temp = diff(start, end);
-        double gesture_time = (temp.tv_sec + (double) temp.tv_nsec / 1000000000.0);
-        double gesture_fps = perCntMax / gesture_time;
 
-        std::cout << "FPS: " << gesture_fps << std::endl;
-    }
-    ++perCnt;
-}
-void HandGesture::initbbCenter()
-{
-    bbCenter = new ShmConfig::Landmark[ShmConfig::handNum];
 }
 struct timespec diff(struct timespec start, struct timespec end)
 {

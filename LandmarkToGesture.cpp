@@ -10,14 +10,12 @@
 namespace HandGesture{
 void HandGesture::landmarkToGesture()
 {
-    #if GAME_MODE
     gameMode();
-    #elif PER_MODE
-    gameMode();
+    #if PER_MODE
     performaceMode();
     #endif
 }
-void HandGesture::angleSimilarity(int *gesReturn)
+void HandGesture::angleSimilarity(std::vector<int> &gesReturn)
 {
     for(int hand=0; hand<multiHandNum; hand++){
         int maxGes = -1;
@@ -44,12 +42,11 @@ void HandGesture::angleSimilarity(int *gesReturn)
 }
 void HandGesture::initCmpAngleArr()
 {
-    cmpAngleArr = new int [cmpAngleArrNum];
     for(int i=0; i<cmpAngleArrNum; i++){
         cmpAngleArr[i] = (i%3) + (i/3)*4 + 1;
     }
 }
-void HandGesture::initJointAngle(ShmConfig::Landmark **lm, const int &idxNum)
+void HandGesture::initJointAngle(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum)
 {
     for(int idx=0; idx<idxNum; idx++){
         for(int i=0; i<cmpAngleArrNum; i++){
@@ -70,7 +67,7 @@ void HandGesture::initImageSize()
     const float h = capture.get(cv::CAP_PROP_FRAME_HEIGHT);
     imageSize = {w, h, 1};
 }
-void HandGesture::resize(ShmConfig::Landmark **lm, const int &idxNum)
+void HandGesture::resize(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum)
 {
     for(int i=0; i<idxNum; i++){
         for(int j=0; j<ShmConfig::jointNum; j++){
@@ -79,13 +76,7 @@ void HandGesture::resize(ShmConfig::Landmark **lm, const int &idxNum)
     }
 }
 void HandGesture::initGestureDef()
-{
-    // allocate memory
-    gestureDef = new ShmConfig::Landmark*[gestureNum];
-    for(int ges=0; ges<gestureNum; ges++){
-        gestureDef[ges] = new ShmConfig::Landmark[ShmConfig::jointNum];
-    }
-    
+{    
     // load defined gestures
     for(int ges=0; ges<gestureNum; ges++){
         const std::string path = std::string(gesturePath) + "/" + std::to_string(ges)+".gesture";
@@ -113,17 +104,13 @@ void HandGesture::initGestureDef()
 
     preprocess(gestureDef, gestureNum);
 }
-void HandGesture::preprocess(ShmConfig::Landmark **lm, const int &idxNum)
+void HandGesture::preprocess(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum)
 {
     resize(lm, idxNum);
 
     initJointAngle(lm, idxNum);
 }
-void HandGesture::initGestureName()
-{
-    gestureName = new std::string[gestureNum];
-}
-void HandGesture::defineMode(cv::Mat &output_frame_mat)
+void HandGesture::defineMode(cv::Mat &output_frame_mat, std::vector<std::vector<ShmConfig::Landmark>> &lmCopy)
 {
     int defineGestureNum {0};
     std::cout << "Input gesture ID: \n";
@@ -136,7 +123,7 @@ void HandGesture::defineMode(cv::Mat &output_frame_mat)
     }
 
     for(int i=0; i<ShmConfig::jointNum; i++){
-        gestureFile << i << " " << landmarks[0][i].x << " " << landmarks[0][i].y << " " << landmarks[0][i].z << std::endl;
+        gestureFile << i << " " << lmCopy[0][i].x << " " << lmCopy[i][0].y << " " << lmCopy[0][i].z << std::endl;
     }
 
     std::string defineGestureName;
@@ -147,7 +134,7 @@ void HandGesture::defineMode(cv::Mat &output_frame_mat)
     gestureFile.close();
 
     // preprocess
-    preprocess(landmarks, 1);
+    preprocess(lmCopy, 1);
 
     // store files
     std::string pathLog(gesturePath + "/" + std::to_string(defineGestureNum) + ".gestureLog");
@@ -158,7 +145,7 @@ void HandGesture::defineMode(cv::Mat &output_frame_mat)
     }
 
     for(int i=0; i<ShmConfig::jointNum; i++){
-        gestureLogFile << i << " " << landmarks[0][i].x << " " << landmarks[0][i].y << std::endl;
+        gestureLogFile << i << lmCopy[0][i] << std::endl;
     }
 
     gestureLogFile.close();
@@ -168,7 +155,7 @@ void HandGesture::defineMode(cv::Mat &output_frame_mat)
 }
 void HandGesture::gameMode()
 {
-    int *ges = new int[multiHandNum];
+    std::vector<int> ges;
 
     preprocess(landmarks, multiHandNum);
 

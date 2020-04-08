@@ -5,6 +5,7 @@
 #include <string>
 #include <cmath>
 #include <ctime>
+#include <vector>
 
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
@@ -18,21 +19,21 @@ namespace HandGesture{
     class HandGesture{
     public:
             void landmarkToGesture();
-            void angleSimilarity(int *gesReturn);
-            void resize(ShmConfig::Landmark **lm, const int &idxNum);
-            void preprocess(ShmConfig::Landmark **lm, const int &idxNum);
+            void angleSimilarity(std::vector<int> &gesReturn);
+            void resize(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum);
+            void preprocess(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum);
 
             void initCmpAngleArr();
-            void initJointAngle(ShmConfig::Landmark **lm, const int &idxNum);
+            void initJointAngle(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum);
             void initImageSize();
             void initGestureDef();
-            void initGestureName();
 
-            int *cmpAngleArr;
+            std::vector<int> cmpAngleArr;
             int cmpAngleArrNum = 15;
-            ShmConfig::Landmark **gestureDef;
+            std::vector<std::vector<ShmConfig::Landmark>> gestureDef;
             ShmConfig::Landmark imageSize;
-            std::string *gestureName;
+            std::vector<std::string> gestureName;
+            std::vector<int> gestureID;
 
             int fps = 60;
             int gestureNum = 10;
@@ -63,15 +64,13 @@ namespace HandGesture{
         // internal class using
         HandGesture(ShmConfig::Gesture *gesturePtr);
         ~HandGesture();
-        void initLandmark();
-        void initbbCenter();
-        void defineMode(cv::Mat &output_frame_mat);
+        void defineMode(cv::Mat &output_frame_mat, std::vector<std::vector<ShmConfig::Landmark>> &lmCopy);
         void gameMode();
         void performaceMode();
 
     //private:
-        ShmConfig::Landmark **landmarks;
-        ShmConfig::Landmark *bbCenter;
+        std::vector<std::vector<ShmConfig::Landmark>> landmarks;
+        std::vector<ShmConfig::Landmark> bbCenter;
         
         // hand number from mediapipe multi hand
         int multiHandNum;
