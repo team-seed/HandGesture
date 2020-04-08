@@ -10,9 +10,7 @@
 namespace HandGesture{
 void HandGesture::landmarkToGesture()
 {
-    #ifdef DEFINE_MODE
-    defineMode();
-    #elif GAME_MODE
+    #if GAME_MODE
     gameMode();
     #elif PER_MODE
     gameMode();
@@ -102,9 +100,9 @@ void HandGesture::initGestureDef()
         for(int joint=0; joint<ShmConfig::jointNum; joint++){
             std::getline(gesFile, s);
             std::istringstream ss(s);
-            int index; float angle;
+            int index;
 
-            ss >> index >> gestureDef[ges][joint] >> angle;
+            ss >> index >> gestureDef[ges][joint];
         }
         std::getline(gesFile, s);
         // cause error because initGestureName() after this function
@@ -125,7 +123,7 @@ void HandGesture::initGestureName()
 {
     gestureName = new std::string[gestureNum];
 }
-void HandGesture::defineMode()
+void HandGesture::defineMode(cv::Mat &output_frame_mat)
 {
     int defineGestureNum {0};
     std::cout << "Input gesture ID: \n";
@@ -138,7 +136,7 @@ void HandGesture::defineMode()
     }
 
     for(int i=0; i<ShmConfig::jointNum; i++){
-        gestureFile << i << " " << landmarks[0][i] << std::endl;
+        gestureFile << i << " " << landmarks[0][i].x << " " << landmarks[0][i].y << " " << landmarks[0][i].z << std::endl;
     }
 
     std::string defineGestureName;
@@ -160,10 +158,13 @@ void HandGesture::defineMode()
     }
 
     for(int i=0; i<ShmConfig::jointNum; i++){
-        gestureLogFile << i << " " << landmarks[0][i] << std::endl;
+        gestureLogFile << i << " " << landmarks[0][i].x << " " << landmarks[0][i].y << std::endl;
     }
 
     gestureLogFile.close();
+
+    // save picture
+    cv::imwrite(gesturePath + "/" + std::to_string(defineGestureNum) + ".jpg", output_frame_mat);
 }
 void HandGesture::gameMode()
 {
