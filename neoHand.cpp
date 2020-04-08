@@ -36,7 +36,7 @@ int main()
     ShmConfig::Gesture *ges = segment.find<ShmConfig::Gesture>(
         ShmConfig::shmbbCenterGestureName).first;
 */
-    print(ges);
+    print(gesture);
 
     return 0;
 }
