@@ -5,7 +5,7 @@ namespace ShmConfig{
     const int jointNum = 21;
     // shm settings
     const char *shmName = "HandGesture";
-    const int shmSize = 1024;
+    const int shmSize = 65536;
     const char *shmbbCenterGestureName = "bbCenterGesture";
 
     std::ostream& operator<<(std::ostream& o, const Landmark &l)
@@ -16,8 +16,16 @@ namespace ShmConfig{
     {
         return i >> l.x >> l.y >> l.z;
     }
+    std::ostream& operator<<(std::ostream& o, const Normalized2DPoint &n2d)
+    {
+        return o << " (x, y) = " << n2d.x << ", " << n2d.y << " ";
+    }
     std::ostream& operator<<(std::ostream& o, const Gesture &g)
     {
-        return o << " gesture " << g.lm << " is " << g.gesture << " ";
+        o << " GestureNum: " << g.lm.size() << " Gesture: " << g.gesture << std::endl;
+        for(auto &lm : g.lm){
+            o << lm << std::endl;
+        }
+        return o;
     }
 }

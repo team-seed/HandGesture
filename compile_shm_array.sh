@@ -7,4 +7,5 @@
 
 # for neoHand.cpp test
 g++ ShmConfig.cpp -c -o ShmConfig.o
-g++ neoHand.cpp ShmConfig.o -lrt -lpthread -o neoHand.o
+g++ shm_array_receiver.cpp ShmConfig.o -lrt -lpthread -o shm_array_receiver.o
+g++ shm_array_sender.cpp ShmConfig.o -lrt -lpthread -o shm_array_sender.o

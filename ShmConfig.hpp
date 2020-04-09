@@ -5,6 +5,11 @@
 #include <string>
 #include <cmath>
 
+#include <boost/interprocess/containers/vector.hpp>
+#include <boost/interprocess/containers/list.hpp>
+#include <boost/interprocess/allocators/allocator.hpp>
+#include <boost/interprocess/managed_shared_memory.hpp>
+
 namespace ShmConfig{
     #define FLOAT_MIN 1e-10
     // modify these value in mediapipe if changed handNum
@@ -91,14 +96,32 @@ namespace ShmConfig{
     };
     std::ostream& operator<<(std::ostream& o, const Landmark &l);
     std::istream& operator>>(std::istream& i, Landmark &l);
+    
+    struct Normalized2DPoint{
+        float x, y;
+
+        Normalized2DPoint(float _x = 0, float _y = 0)
+        :x(_x), y(_y){}
+    };
+    std::ostream& operator<<(std::ostream& o, const Normalized2DPoint &n2d);
+
+    typedef boost::interprocess::managed_shared_memory::segment_manager segment_manager_t;
+    typedef boost::interprocess::allocator<Normalized2DPoint, segment_manager_t> ShmNormalized2DPointAllocator;
+    typedef boost::interprocess::vector<Normalized2DPoint, ShmNormalized2DPointAllocator> ShmNormalized2DPointVector;
+    typedef boost::interprocess::allocator<void, segment_manager_t> ShmVoidAllocator;
 
     struct Gesture{
-        Landmark lm;
+        ShmNormalized2DPointVector lm;
         int gesture;
 
-        Gesture(Landmark _lm = {-0.f, -0.f, -0.f}, int _gesture = -1)
-        :lm(_lm), gesture(_gesture){}
+        Gesture(const ShmVoidAllocator &void_alloc, int _gesture = -1)
+        :lm(void_alloc),gesture(_gesture){}
     };
     std::ostream& operator<<(std::ostream& o, const Gesture &g);
+
+    //Alias an STL-like allocator of ints that allocates ints from the segment
+    typedef boost::interprocess::allocator<Gesture, segment_manager_t> ShmGestureAllocator;
+    //Alias a list that uses the previous STL-like allocator
+    typedef boost::interprocess::list<Gesture, ShmGestureAllocator> ShmGestureList;
 }
 #endif
