@@ -4,9 +4,9 @@
 void print(ShmConfig::ShmGestureList *ges, ShmConfig::ShmVoidAllocator &shmVoidAllocator)
 {
     while(true){
-        if(ges->size() > 0){
+        if(!ges->empty()){
             ShmConfig::Gesture g(shmVoidAllocator);
-            g = ges->front();
+            g = boost::move(ges->front());
             ges->pop_front();
 
             std::cout << g << std::endl;

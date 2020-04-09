@@ -4,16 +4,17 @@
 void send(ShmConfig::ShmGestureList *gestureList, ShmConfig::ShmVoidAllocator &shmVoidAllocator)
 {
     int cnt {0};
-    std::cout << gestureList->max_size() << std::endl;
+
     while(true){
         if(gestureList->size() < 500){
-            ShmConfig::ShmNormalized2DPointVector v(shmVoidAllocator);
             ShmConfig::Gesture g(shmVoidAllocator);
+            ShmConfig::ShmNormalized2DPointVector v(shmVoidAllocator);
+            v.reserve(ShmConfig::handNum);
             v.push_back({cnt, cnt});
             v.push_back({cnt*2, cnt*2});
-            g.lm = v;
+            g.lm = boost::move(v);
             g.gesture = cnt;
-            gestureList->push_back(g);
+            gestureList->push_back(boost::move(g));
             
             std::cout << cnt << std::endl;
             cnt = cnt > 10000 ? 0 : cnt+1;
