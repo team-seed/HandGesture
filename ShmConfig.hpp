@@ -105,23 +105,14 @@ namespace ShmConfig{
     };
     std::ostream& operator<<(std::ostream& o, const Normalized2DPoint &n2d);
 
-    typedef boost::interprocess::managed_shared_memory::segment_manager segment_manager_t;
-    typedef boost::interprocess::allocator<Normalized2DPoint, segment_manager_t> ShmNormalized2DPointAllocator;
-    typedef boost::interprocess::vector<Normalized2DPoint, ShmNormalized2DPointAllocator> ShmNormalized2DPointVector;
-    typedef boost::interprocess::allocator<void, segment_manager_t> ShmVoidAllocator;
-
     struct Gesture{
-        ShmNormalized2DPointVector lm;
+        Normalized2DPoint h1, h2;
         int gesture;
+        int handNum;
 
-        Gesture(const ShmVoidAllocator &void_alloc, int _gesture = -1)
-        :lm(void_alloc),gesture(_gesture){}
+        Gesture(int _gesture = -1, int _handNum = -1)
+        :gesture(_gesture), handNum(_handNum){}
     };
     std::ostream& operator<<(std::ostream& o, const Gesture &g);
-
-    //Alias an STL-like allocator of ints that allocates ints from the segment
-    typedef boost::interprocess::allocator<Gesture, segment_manager_t> ShmGestureAllocator;
-    //Alias a list that uses the previous STL-like allocator
-    typedef boost::interprocess::list<Gesture, ShmGestureAllocator> ShmGestureList;
 }
 #endif

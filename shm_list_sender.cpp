@@ -1,67 +1,36 @@
 #include <iostream>
 #include "ShmConfig.hpp"
 
-void send(ShmConfig::ShmGestureList *gestureList, ShmConfig::ShmVoidAllocator &shmVoidAllocator)
+void send()
 {
     int cnt {0};
 
     while(true){
-        if(gestureList->size() < 500){
-            ShmConfig::Gesture g(shmVoidAllocator);
-            ShmConfig::ShmNormalized2DPointVector v(shmVoidAllocator);
-            v.reserve(ShmConfig::handNum);
-            v.push_back({cnt, cnt});
-            v.push_back({cnt*2, cnt*2});
-            g.lm = boost::move(v);
-            g.gesture = cnt;
-            gestureList->push_back(boost::move(g));
-            
-            std::cout << cnt << std::endl;
-            cnt = cnt > 10000 ? 0 : cnt+1;
-        }
+        // get an array from shared memory
+        // Create a new segment with given name and size
+        boost::interprocess::managed_shared_memory segment(
+            boost::interprocess::open_or_create, ShmConfig::shmName, ShmConfig::shmSize);
+
+        // Construct an variable in shared memory
+        ShmConfig::Gesture *gestureList = segment.find<ShmConfig::Gesture>(
+            ShmConfig::shmbbCenterGestureName).first;
+        
         if(!gestureList){
             std::cout << "gestureList failed\n";
         }
+
+        gestureList->h1 = {cnt, cnt};
+        gestureList->h2 = {cnt*2, cnt*2};
+        gestureList->gesture = cnt;
+        gestureList->handNum = 2;
+        
+        std::cout << cnt << std::endl;
+        cnt = cnt > 10000 ? 0 : cnt+1;
     }
 }
 int main()
 {
-/*
-    // remove shmName before usage and after usage
-    struct ShmPreventer{
-        ShmPreventer(){boost::interprocess::shared_memory_object::remove(ShmConfig::shmName);}
-        ~ShmPreventer(){boost::interprocess::shared_memory_object::remove(ShmConfig::shmName);}
-    }shmPreventer;
-  
-    // Create a new segment with given name and size
-    boost::interprocess::managed_shared_memory segment(
-        boost::interprocess::open_or_create, ShmConfig::shmName, ShmConfig::shmSize);
-
-    ShmConfig::ShmVoidAllocator shmVoidAllocator(segment.get_segment_manager());
-    //ShmConfig::ShmGestureAllocator shmGestureAllocator(segment.get_segment_manager());
-
-    // Construct an variable in shared memory
-    ShmConfig::ShmGestureList *gestureList = segment.construct<ShmConfig::ShmGestureList>(
-        ShmConfig::shmbbCenterGestureName)(shmVoidAllocator);
-*/
-    // get an array from shared memory
-    // Create a new segment with given name and size
-    boost::interprocess::managed_shared_memory segment(
-        boost::interprocess::open_or_create, ShmConfig::shmName, ShmConfig::shmSize);
-
-    // Construct an variable in shared memory
-    ShmConfig::ShmGestureList *gestureList = segment.find<ShmConfig::ShmGestureList>(
-        ShmConfig::shmbbCenterGestureName).first;
-
-    //ShmConfig::ShmNormalized2DPointAllocator shmVectorAllocator(segment.get_segment_manager());
-    ShmConfig::ShmVoidAllocator shmVoidAllocator(segment.get_segment_manager());
-    //ShmConfig::ShmGestureAllocator shmGestureAllocator(segment.get_segment_manager());
-    
-    ShmConfig::ShmNormalized2DPointVector v(shmVoidAllocator);
-    ShmConfig::Gesture g(shmVoidAllocator);
-    //ShmConfig::Gesture g(shmVoidAllocator);
-
-    send(gestureList, shmVoidAllocator);
+    send();
 
     return 0;
 }

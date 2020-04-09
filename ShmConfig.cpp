@@ -22,10 +22,6 @@ namespace ShmConfig{
     }
     std::ostream& operator<<(std::ostream& o, const Gesture &g)
     {
-        o << " GestureNum: " << g.lm.size() << " Gesture: " << g.gesture << std::endl;
-        for(auto &lm : g.lm){
-            o << lm << std::endl;
-        }
-        return o;
+        return o << "handNum: " << g.handNum << " Gesture: " << g.gesture << " " << g.h1 << " " << g.h2 << std::endl;
     }
 }
