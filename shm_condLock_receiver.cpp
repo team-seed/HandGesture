@@ -2,25 +2,25 @@
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include "ShmConfig.hpp"
 
-void print(ShmConfig::Gesture *gestureList)
+void print(ShmConfig::Gesture *gesture)
 {
     while(true){
-        if(!gestureList){
-            std::cout << "gestureList failed\n";
+        if(!gesture){
+            std::cout << "gesture failed\n";
         }
         {
             // lock start
-            boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(gestureList->mutex);
-            if(!gestureList->gestureUpdate){
-                gestureList->condEmpty.wait(lock);
+            boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(gesture->mutex);
+            if(!gesture->gestureUpdate){
+                gesture->condEmpty.wait(lock);
             }
             
             // receive data
-            std::cout << *gestureList << std::endl;
+            std::cout << *gesture << std::endl;
 
             // Notify the other process that the buffer is empty
-            gestureList->condFull.notify_one();
-            gestureList->gestureUpdate = false;
+            gesture->condFull.notify_one();
+            gesture->gestureUpdate = false;
             // lock end
         }
         
@@ -39,10 +39,10 @@ int main()
         boost::interprocess::open_or_create, ShmConfig::shmName, ShmConfig::shmSize);
 
     // Construct an variable in shared memory
-    ShmConfig::Gesture *gestureList = segment.construct<ShmConfig::Gesture>(
+    ShmConfig::Gesture *gesture = segment.construct<ShmConfig::Gesture>(
         ShmConfig::shmbbCenterGestureName)();
 
-    print(gestureList);
+    print(gesture);
 
     segment.destroy<ShmConfig::Gesture>(ShmConfig::shmbbCenterGestureName);
 
