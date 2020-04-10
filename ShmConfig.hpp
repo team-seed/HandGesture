@@ -5,10 +5,9 @@
 #include <string>
 #include <cmath>
 
-#include <boost/interprocess/containers/vector.hpp>
-#include <boost/interprocess/containers/list.hpp>
-#include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/sync/interprocess_mutex.hpp>
+#include <boost/interprocess/sync/interprocess_condition.hpp>
 
 namespace ShmConfig{
     #define FLOAT_MIN 1e-10
@@ -110,8 +109,20 @@ namespace ShmConfig{
         int gesture;
         int handNum;
 
+        //Mutex to protect access to the queue
+        boost::interprocess::interprocess_mutex      mutex;
+
+        //Condition to wait when the queue is empty
+        boost::interprocess::interprocess_condition  condEmpty;
+
+        //Condition to wait when the queue is full
+        boost::interprocess::interprocess_condition  condFull;
+
+        //Is there any message
+        bool gestureUpdate;
+
         Gesture(int _gesture = -1, int _handNum = -1)
-        :gesture(_gesture), handNum(_handNum){}
+        :gesture(_gesture), handNum(_handNum), gestureUpdate(false){}
     };
     std::ostream& operator<<(std::ostream& o, const Gesture &g);
 }
