@@ -5,6 +5,7 @@
 #include <string>
 #include <cmath>
 #include <ctime>
+#include <array>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -16,33 +17,12 @@
 namespace HandGesture{
     // POSIX time measurement
     struct timespec diff(struct timespec start, struct timespec end);
+    constexpr int cmpAngleArrNum {15};
+    typedef std::array<ShmConfig::Landmark, ShmConfig::jointNum> lmArray;
+    typedef std::array<lmArray, ShmConfig::handNum> lm2DArray;
+    typedef std::array<ShmConfig::Normalized2DPoint, ShmConfig::handNum> pointArray;
     class HandGesture{
     public:
-            void landmarkToGesture();
-            void angleSimilarity(std::vector<int> &gesReturn);
-            void resize(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum);
-            void preprocess(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum);
-
-            void initCmpAngleArr();
-            void initJointAngle(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum);
-            void initImageSize();
-            void initGestureDef();
-
-            std::vector<int> cmpAngleArr;
-            int cmpAngleArrNum = 15;
-            std::vector<std::vector<ShmConfig::Landmark>> gestureDef;
-            ShmConfig::Landmark imageSize;
-            std::vector<std::string> gestureName;
-            std::vector<int> gestureID;
-
-            int fps = 60;
-            int gestureNum = 10;
-            float angleSimilarityThreshold = 2.0f;
-            int camID = 0;
-            std::string gesturePath = "../mediapipe/mediapipe/HandGesture/store_gesture";
-            int perCnt = 0;
-            int perCntMax = 1e5;
-
         // provide these four functions API for NeoHand
         //void handGestureConfig();  // NeoHand related config, implement by file IO
         void recvGesture();
@@ -56,29 +36,51 @@ namespace HandGesture{
         void getHandGestureConfig();  // get all config from NeoHand and HandGesture
         void setHandGestureConfig();  // set all config from NeoHand and HandGesture
 
-        // init shm
-        //void initShm();
-        //void delShm();
-        //void openShm();
-
         // internal class using
         HandGesture(ShmConfig::Gesture *gesturePtr);
         ~HandGesture();
-        void defineMode(cv::Mat &output_frame_mat, std::vector<std::vector<ShmConfig::Landmark>> &lmCopy);
+        void defineMode(cv::Mat &output_frame_mat, lm2DArray &lmCopy);
         void gameMode();
         void performaceMode();
 
     //private:
-        std::vector<std::vector<ShmConfig::Landmark>> landmarks;
-        std::vector<ShmConfig::Landmark> bbCenter;
+        lm2DArray landmarks;
+        pointArray bbCenter;
         
         // hand number from mediapipe multi hand
         int multiHandNum;
-        int multiRectNum;
         
         // these three variables must consider IPC issues
         ShmConfig::Gesture *gesture;
         struct timespec start, end;
+
+            void landmarkToGesture();
+            void angleSimilarity(std::array<int, ShmConfig::handNum> &gesReturn);
+            template <class Lm2DArrayVec>
+            void resize(Lm2DArrayVec &lm, const int &idxNum);
+            template <class Lm2DArrayVec>
+            void preprocess(Lm2DArrayVec &lm, const int &idxNum);
+
+            void initCmpAngleArr();
+            template <class Lm2DArrayVec>
+            void initJointAngle(Lm2DArrayVec &lm, const int &idxNum);
+            void initImageSize();
+            void initGestureDef();
+
+            std::array<int, cmpAngleArrNum> cmpAngleArr;
+            std::vector<lmArray> gestureDef;
+            ShmConfig::Landmark imageSize;
+            // after config gestureNum
+            std::vector<std::string> gestureName;
+            std::vector<int> gestureID;
+
+            int fps;
+            int gestureNum;
+            float angleSimilarityThreshold;
+            int camID;
+            std::string gesturePath;
+            int perCnt;
+            int perCntMax;
     };
 }
 

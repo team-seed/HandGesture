@@ -2,8 +2,8 @@
 #define SHMCONFIG_HPP
 
 #include <iostream>
-#include <string>
 #include <cmath>
+#include <array>
 
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
@@ -19,12 +19,12 @@ namespace ShmConfig{
     //     CollectionHsMinSizeCalculatorOptions in
     //     mediapipe/graphs/hand_tracking/multi_hand_tracking_mobile.pbtxt and
     //     mediapipe/graphs/hand_tracking/multi_hand_tracking_desktop_live.pbtxt.
-    extern const int handNum;
-    extern const int jointNum;
+    constexpr int handNum {2};
+    constexpr int jointNum {21};
     // shm settings
-    extern const char *shmName;
-    extern const int shmSize;
-    extern const char *shmbbCenterGestureName;
+    constexpr char shmName[] = "HandGesture";
+    constexpr int shmSize {65536};
+    constexpr char shmbbCenterGestureName[] = "bbCenterGesture";
     struct Landmark{
         float x, y, z, angle;
 
@@ -98,16 +98,16 @@ namespace ShmConfig{
     
     struct Normalized2DPoint{
         float x, y;
+        int gesture;
 
-        Normalized2DPoint(float _x = 0, float _y = 0)
-        :x(_x), y(_y){}
+        Normalized2DPoint(float _x = -1.f, float _y = -1.f, int _gesture = -1)
+        :x(_x), y(_y), gesture(_gesture){}
     };
     std::ostream& operator<<(std::ostream& o, const Normalized2DPoint &n2d);
 
     struct Gesture{
-        Normalized2DPoint h1, h2;
-        int gesture;
-        int handNum;
+        std::array<Normalized2DPoint, handNum> lm;
+        int outputHandNum;
 
         //Mutex to protect access to the queue
         boost::interprocess::interprocess_mutex      mutex;
@@ -121,8 +121,8 @@ namespace ShmConfig{
         //Is there any message
         bool gestureUpdate;
 
-        Gesture(int _gesture = -1, int _handNum = -1)
-        :gesture(_gesture), handNum(_handNum), gestureUpdate(false){}
+        Gesture(int _outputHandNum = -1)
+        :outputHandNum(_outputHandNum), gestureUpdate(false){}
     };
     std::ostream& operator<<(std::ostream& o, const Gesture &g);
 }

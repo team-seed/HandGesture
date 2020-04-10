@@ -1,11 +1,12 @@
 #include <fstream>
 #include <string>
 
-#include "HandGesture.hpp"
-
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
+
+#include "HandGesture.hpp"
 
 namespace HandGesture{
 void HandGesture::landmarkToGesture()
@@ -15,13 +16,13 @@ void HandGesture::landmarkToGesture()
     performaceMode();
     #endif
 }
-void HandGesture::angleSimilarity(std::vector<int> &gesReturn)
+void HandGesture::angleSimilarity(std::array<int, ShmConfig::handNum> &gesReturn)
 {
     for(int hand=0; hand<multiHandNum; hand++){
         int maxGes = -1;
         float maxSim = 200;
 
-        for(int ges=0; ges<gestureNum; ges++){
+        for(int ges=0; ges<gestureDef.size(); ges++){
             float gesSim = 0.f;
             for(int cmpAngleArrCnt=0; cmpAngleArrCnt<cmpAngleArrNum; cmpAngleArrCnt++){
                 int joint = cmpAngleArr[cmpAngleArrCnt];
@@ -46,7 +47,8 @@ void HandGesture::initCmpAngleArr()
         cmpAngleArr[i] = (i%3) + (i/3)*4 + 1;
     }
 }
-void HandGesture::initJointAngle(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum)
+template <class Lm2DArrayVec>
+void HandGesture::initJointAngle(Lm2DArrayVec &lm, const int &idxNum)
 {
     for(int idx=0; idx<idxNum; idx++){
         for(int i=0; i<cmpAngleArrNum; i++){
@@ -67,7 +69,8 @@ void HandGesture::initImageSize()
     const float h = capture.get(cv::CAP_PROP_FRAME_HEIGHT);
     imageSize = {w, h, 1};
 }
-void HandGesture::resize(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum)
+template <class Lm2DArrayVec>
+void HandGesture::resize(Lm2DArrayVec &lm, const int &idxNum)
 {
     for(int i=0; i<idxNum; i++){
         for(int j=0; j<ShmConfig::jointNum; j++){
@@ -79,7 +82,7 @@ void HandGesture::initGestureDef()
 {    
     // load defined gestures
     for(int ges=0; ges<gestureNum; ges++){
-        const std::string path = std::string(gesturePath) + "/" + std::to_string(ges)+".gesture";
+        const std::string path = gesturePath + "/" + std::to_string(ges)+".gesture";
 
         std::ifstream gesFile(path);
         if(!gesFile){
@@ -88,42 +91,46 @@ void HandGesture::initGestureDef()
         }
 
         std::string s;
+        lmArray lmarr;
         for(int joint=0; joint<ShmConfig::jointNum; joint++){
             std::getline(gesFile, s);
             std::istringstream ss(s);
             int index;
 
-            ss >> index >> gestureDef[ges][joint];
+            ss >> index >> lmarr[joint];
         }
+        gestureDef.push_back(lmarr);
         std::getline(gesFile, s);
         // cause error because initGestureName() after this function
-        gestureName[ges] = s;
+        gestureName.push_back(s);
         
         gesFile.close();
     }
 
-    preprocess(gestureDef, gestureNum);
+    preprocess(gestureDef, gestureDef.size());
 }
-void HandGesture::preprocess(std::vector<std::vector<ShmConfig::Landmark>> &lm, const int &idxNum)
+template <class Lm2DArrayVec>
+void HandGesture::preprocess(Lm2DArrayVec &lm, const int &idxNum)
 {
     resize(lm, idxNum);
 
     initJointAngle(lm, idxNum);
 }
-void HandGesture::defineMode(cv::Mat &output_frame_mat, std::vector<std::vector<ShmConfig::Landmark>> &lmCopy)
+void HandGesture::defineMode(cv::Mat &output_frame_mat, lm2DArray &lmCopy)
 {
     int defineGestureNum {0};
     std::cout << "Input gesture ID: \n";
     std::cin >> defineGestureNum;
-    std::string path(gesturePath + "/" + std::to_string(defineGestureNum) + ".gesture");
-    std::ofstream gestureFile(path);
+    std::cout << gesturePath << std::endl;
+    const std::string path = gesturePath + "/" + std::to_string(defineGestureNum);
+    std::ofstream gestureFile(path + ".gesture");
 
     if(!gestureFile){
-        std::cerr << "file open failed: " << path << std::endl;
+        std::cerr << "file open failed: " << path << ".gesture" << std::endl;
     }
 
     for(int i=0; i<ShmConfig::jointNum; i++){
-        gestureFile << i << " " << lmCopy[0][i].x << " " << lmCopy[i][0].y << " " << lmCopy[0][i].z << std::endl;
+        gestureFile << i << " " << lmCopy[0][i].x << " " << lmCopy[0][i].y << " " << lmCopy[0][i].z << std::endl;
     }
 
     std::string defineGestureName;
@@ -137,11 +144,10 @@ void HandGesture::defineMode(cv::Mat &output_frame_mat, std::vector<std::vector<
     preprocess(lmCopy, 1);
 
     // store files
-    std::string pathLog(gesturePath + "/" + std::to_string(defineGestureNum) + ".gestureLog");
-    std::ofstream gestureLogFile(pathLog);
+    std::ofstream gestureLogFile(path + ".gestureLog");
 
     if(!gestureLogFile){
-        std::cerr << "file open failed: " << pathLog << std::endl;
+        std::cerr << "file open failed: " << path << ".gestureLog" << std::endl;
     }
 
     for(int i=0; i<ShmConfig::jointNum; i++){
@@ -151,28 +157,36 @@ void HandGesture::defineMode(cv::Mat &output_frame_mat, std::vector<std::vector<
     gestureLogFile.close();
 
     // save picture
-    cv::imwrite(gesturePath + "/" + std::to_string(defineGestureNum) + ".jpg", output_frame_mat);
+    cv::imwrite(path + ".jpg", output_frame_mat);
 }
 void HandGesture::gameMode()
 {
-    std::vector<int> ges;
+    std::array<int, ShmConfig::handNum> ges;
 
     preprocess(landmarks, multiHandNum);
 
     angleSimilarity(ges);
 
-    // assume that multiRectNum must larger than multiHandNum
-    // save gesture to shared memory
-    for(int hand=0; hand<multiHandNum; hand++){
-        gesture[hand] = {bbCenter[hand], ges[hand]};
-    }
-    // if multiHandNum smaller than config.ShmConfig::handNum, set others to ges[0]
-    for(int hand=multiHandNum; hand<ShmConfig::handNum; hand++){
-        gesture[hand].gesture = ges[0];
-    }
-    // if multiRectNum smaller than config.ShmConfig::handNum, set others to gesture[0].lm
-    for(int rect=multiHandNum; rect<ShmConfig::handNum; rect++){
-        gesture[rect].lm = bbCenter[0];
+    {
+        // lock start
+        boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(gesture->mutex);
+        if(gesture->gestureUpdate){
+            gesture->condFull.wait(lock);
+        }
+
+        // send data
+        gesture->outputHandNum = multiHandNum;
+        // assume that multiRectNum must larger than multiHandNum
+        // save gesture to shared memory
+        for(int hand=0; hand<multiHandNum; hand++){
+            bbCenter[hand].gesture = ges[hand];
+        }
+        gesture->lm = boost::move(bbCenter);
+
+        // Notify to the other process that there is a message
+        gesture->condEmpty.notify_one();
+        gesture->gestureUpdate = true;
+        // lock end
     }
 }
 void HandGesture::performaceMode()
