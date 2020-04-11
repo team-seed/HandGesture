@@ -48,12 +48,22 @@ void HandGesture::initCmpAngleArr()
     }
 }
 template <class Lm2DArrayVec>
-void HandGesture::initJointAngle(Lm2DArrayVec &lm, const int &idxNum)
+void HandGesture::initJointCosAngle(Lm2DArrayVec &lm, const int &idxNum)
 {
     for(int idx=0; idx<idxNum; idx++){
         for(int i=0; i<cmpAngleArrNum; i++){
             int joint = cmpAngleArr[i];
             lm[idx][joint].cosAngle(lm[idx][joint-1], lm[idx][joint+1]);
+        }
+    }
+}
+template <class Lm2DArrayVec>
+void HandGesture::initJointSinAngle(Lm2DArrayVec &lm, const int &idxNum)
+{
+    for(int idx=0; idx<idxNum; idx++){
+        for(int i=0; i<cmpAngleArrNum; i++){
+            int joint = cmpAngleArr[i];
+            lm[idx][joint].sinAngle(lm[idx][joint-1], lm[idx][joint+1]);
         }
     }
 }
@@ -108,13 +118,25 @@ void HandGesture::initGestureDef()
     }
 
     preprocess(gestureDef, gestureDef.size());
+/*
+    const std::string anglePath = gesturePath + "/all.angle";
+    std::ofstream angleFile(anglePath);
+    for(int i=0; i<gestureDef.size(); i++){
+        angleFile << i << std::endl;
+        for(const auto &lm : gestureDef[i]){
+            angleFile << lm << std::endl;
+        }
+        angleFile << std::endl;
+    }
+    angleFile.close();
+*/
 }
 template <class Lm2DArrayVec>
 void HandGesture::preprocess(Lm2DArrayVec &lm, const int &idxNum)
 {
     resize(lm, idxNum);
 
-    initJointAngle(lm, idxNum);
+    initJointSinAngle(lm, idxNum);
 }
 void HandGesture::defineMode(cv::Mat &output_frame_mat, lm2DArray &lmCopy)
 {

@@ -86,11 +86,25 @@ namespace ShmConfig{
             return Landmark(x*c, y*c, z*c);
         }
 
-        void cosAngle(Landmark &a, Landmark &c)
+        void cosAngle(const Landmark &a, const Landmark &c)
         {
-            const Landmark x = a - *this;
-            const Landmark y = c - *this;
-            angle = acosf((x*y).distance3d() / (x.distance3d() * y.distance3d()));
+            const Landmark lx = a - *this;
+            const Landmark ly = c - *this;
+            angle = acosf((lx*ly).distance3d() / (lx.distance3d() * ly.distance3d()));
+        }
+
+        // cross product (*this) x b
+        float cross(const Landmark &a, const Landmark &b)
+        {
+            return a.x * b.y - a.y * b.x;
+        }
+
+        void sinAngle(const Landmark &a, const Landmark &c)
+        {
+            const Landmark lx = a - *this;
+            const Landmark ly = c - *this;
+
+            angle = asinf(cross(lx, ly) / lx.distance3d() / ly.distance3d());
         }
     };
     std::ostream& operator<<(std::ostream& o, const Landmark &l);

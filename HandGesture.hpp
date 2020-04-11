@@ -63,9 +63,11 @@ namespace HandGesture{
 
             void initCmpAngleArr();
             template <class Lm2DArrayVec>
-            void initJointAngle(Lm2DArrayVec &lm, const int &idxNum);
+            void initJointCosAngle(Lm2DArrayVec &lm, const int &idxNum);
             void initImageSize();
             void initGestureDef();
+            template <class Lm2DArrayVec>
+            void initJointSinAngle(Lm2DArrayVec &lm, const int &idxNum);
 
             std::array<int, cmpAngleArrNum> cmpAngleArr;
             std::vector<lmArray> gestureDef;
