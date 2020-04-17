@@ -189,27 +189,15 @@ void HandGesture::gameMode()
 
     angleSimilarity(ges);
 
-    {
-        // lock start
-        boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(gesture->mutex);
-        if(gesture->gestureUpdate){
-            gesture->condFull.wait(lock);
-        }
-
-        // send data
-        gesture->outputHandNum = multiHandNum;
-        // assume that multiRectNum must larger than multiHandNum
-        // save gesture to shared memory
-        for(int hand=0; hand<multiHandNum; hand++){
-            bbCenter[hand].gesture = ges[hand];
-        }
-        gesture->lm = boost::move(bbCenter);
-
-        // Notify to the other process that there is a message
-        gesture->condEmpty.notify_one();
-        gesture->gestureUpdate = true;
-        // lock end
+    // send data
+    gesture->outputHandNum = multiHandNum;
+    // assume that multiRectNum must larger than multiHandNum
+    // save gesture to shared memory
+    for(int hand=0; hand<multiHandNum; hand++){
+        bbCenter[hand].gesture = ges[hand];
     }
+    gesture->lm = bbCenter;
+
 }
 void HandGesture::performaceMode()
 {

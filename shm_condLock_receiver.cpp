@@ -6,27 +6,14 @@
 void print(ShmConfig::Gesture *gesture)
 {
     int cnt = 0;
-    while(cnt < 10){
+    while(cnt < 100000){
         if(!gesture){
             std::cout << "gesture failed\n";
         }
-        {
-            // lock start
-            boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(gesture->mutex);
-            if(!gesture->gestureUpdate){
-                gesture->condEmpty.wait(lock);
-            }
             
-            // receive data
-            std::cout << *gesture << std::endl;
-            ++cnt;
-
-            // Notify the other process that the buffer is empty
-            gesture->condFull.notify_one();
-            gesture->gestureUpdate = false;
-            // lock end
-        }
-        
+        // receive data
+        std::cout << *gesture << std::endl;
+        ++cnt;
     }
 }
 int main()
