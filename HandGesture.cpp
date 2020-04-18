@@ -4,7 +4,7 @@ namespace HandGesture{
 HandGesture::HandGesture(ShmConfig::Gesture *gesturePtr)
 :gesture{gesturePtr}, gestureNum{10},
 angleSimilarityThreshold{2.0f},
-camID{0}, perCnt{0}, perCntMax{10000},
+camID{0}, perCnt{0}, perCntMax{3600},
 gesturePath("../mediapipe/mediapipe/HandGesture/store_gesture")
 {
     getHandGestureConfig();
