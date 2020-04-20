@@ -96,7 +96,7 @@ void HandGesture::initGestureDef()
 
         std::ifstream gesFile(path);
         if(!gesFile){
-            std::cerr << "load_gesture";
+            std::cerr << "load_gesture failed\n";
             exit(EXIT_FAILURE);
         }
 
