@@ -78,6 +78,7 @@ void HandGesture::initImageSize()
     const float w = capture.get(cv::CAP_PROP_FRAME_WIDTH);
     const float h = capture.get(cv::CAP_PROP_FRAME_HEIGHT);
     imageSize = {w, h, 1};
+	std::cout << "setting fps: " << capture.get(cv::CAP_PROP_FPS) << std::endl;
 }
 template <class Lm2DArrayVec>
 void HandGesture::resize(Lm2DArrayVec &lm, const int &idxNum)
@@ -203,8 +204,10 @@ void HandGesture::performaceMode()
 {
     if(perCnt == 0){
         clock_gettime(CLOCK_MONOTONIC_COARSE, &start);
+        ++perCnt;
     }
     else if(perCnt == perCntMax){
+		perCnt = 0;
         clock_gettime(CLOCK_MONOTONIC_COARSE, &end);
         struct timespec temp = diff(start, end);
         double gesture_time = (temp.tv_sec + (double) temp.tv_nsec / 1000000000.0);
@@ -212,6 +215,8 @@ void HandGesture::performaceMode()
 
         std::cout << "FPS: " << gesture_fps << std::endl; 
     }
-    ++perCnt;
+    else{
+        ++perCnt;
+    }
 }
 }

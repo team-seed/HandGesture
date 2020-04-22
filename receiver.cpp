@@ -1,32 +1,23 @@
-#include <unistd.h>
-#include <signal.h>
+// put this file in mediapipe/HandGesture folder
+// compile command: 
+//	1) g++ ShmConfig.cpp -c -o ShmConfig.o
+//	2) g++ receiver.cpp ShmConfig.o -lrt -lpthread -o receiver
+// run command: 
+// 	1) ./receiver
+//	2) source runHandTrackingGPU.sh
 #include <iostream>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include "ShmConfig.hpp"
 
 void print(ShmConfig::Gesture *gesture)
 {
-    int cnt = 0;
-    while(cnt < 1000000){
+    while(true){
         if(!gesture){
             std::cout << "gesture failed\n";
         }
-        {
-            // lock start
-            boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(gesture->mutex);
-            if(!gesture->gestureUpdate){
-                gesture->condEmpty.wait(lock);
-            }
             
-            // receive data
-            std::cout << *gesture << std::endl;
-            ++cnt;
-
-            // Notify the other process that the buffer is empty
-            gesture->condFull.notify_one();
-            gesture->gestureUpdate = false;
-            // lock end
-        }
+        // receive data
+        std::cout << *gesture << std::endl;
     }
 }
 int main()
@@ -37,12 +28,6 @@ int main()
 
     if(pid == 0){
         std::cout << "child pid: " << getpid() << std::endl;
-        char *argv[] = {"/bin/bash","runHandTrackingGPU.sh", NULL};
-        // direct to runHandTrackingGPU.sh folder
-        chdir("../..");
-        execv("/bin/bash", argv);
-	    std::cout << "child exec failed\n";
-        exit(EXIT_FAILURE);
     }
     else if(pid > 0){
         // remove shmName before usage and after usage
@@ -60,13 +45,6 @@ int main()
             ShmConfig::shmbbCenterGestureName)();
 
         print(gesture);
-
-        // for demo purpose
-        sleep(3);
-
-        kill(pid,SIGTERM);
-
-        std::cout << "father killed child\n";
 
         segment.destroy<ShmConfig::Gesture>(ShmConfig::shmbbCenterGestureName);
     }
