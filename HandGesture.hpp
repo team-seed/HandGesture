@@ -83,6 +83,8 @@ namespace HandGesture{
             std::string gesturePath;
             int perCnt;
             int perCntMax;
+            int camWidth;
+            int camHeight;
     };
 }
 

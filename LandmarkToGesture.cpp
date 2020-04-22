@@ -75,9 +75,12 @@ void HandGesture::initImageSize()
         std::cerr << "ERROR! Unable to open camera\n";
         exit(EXIT_FAILURE);
     }
-    const float w = capture.get(cv::CAP_PROP_FRAME_WIDTH);
-    const float h = capture.get(cv::CAP_PROP_FRAME_HEIGHT);
-    imageSize = {w, h, 1};
+    int fourcc = cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
+    capture.set(cv::CAP_PROP_FOURCC, fourcc);
+    capture.set(cv::CAP_PROP_FRAME_WIDTH, camWidth);
+    capture.set(cv::CAP_PROP_FRAME_HEIGHT, camHeight);
+    capture.set(cv::CAP_PROP_FPS, fps);
+    imageSize = {camWidth, camHeight, 1};
 	std::cout << "setting fps: " << capture.get(cv::CAP_PROP_FPS) << std::endl;
 }
 template <class Lm2DArrayVec>
