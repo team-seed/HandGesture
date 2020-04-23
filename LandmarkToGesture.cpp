@@ -1,3 +1,8 @@
+// compile command:
+//  1) For opencv 4: g++ testCam.cpp -o testCam.o `pkg-config --cflags --libs opencv4`
+//  2) For opencv above 4: g++ testCam.cpp -o testCam.o `pkg-config --cflags --libs opencv`
+// run command:
+//  ./testCam.o
 #include <fstream>
 #include <string>
 
@@ -12,9 +17,9 @@ namespace HandGesture{
 void HandGesture::landmarkToGesture()
 {
     gameMode();
-    #if PER_MODE
+    //#if PER_MODE
     performaceMode();
-    #endif
+    //#endif
 }
 void HandGesture::angleSimilarity(std::array<int, ShmConfig::handNum> &gesReturn)
 {
