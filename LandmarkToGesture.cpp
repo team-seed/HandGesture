@@ -12,9 +12,9 @@ namespace HandGesture{
 void HandGesture::landmarkToGesture()
 {
     gameMode();
-    //#if PER_MODE
+    #if PER_MODE
     performaceMode();
-    //#endif
+    #endif
 }
 void HandGesture::angleSimilarity(std::array<int, ShmConfig::handNum> &gesReturn)
 {
